@@ -9,9 +9,9 @@ BACKLIGHT="/sys/class/backlight/$SCREEN/brightness"
 IDLEPOLL=1                                                          #In seconds
 MAXPOLL=0.05                                                        #In seconds
 SENSITIVITY=10                                                      #Unitless. Try fiddling.
-STEPPING=10                                                         #Transition steps
+STEPPING=5                                                         #Transition steps
 MIN_BRIGHT=60
-TOLERANCE=10
+TOLERANCE=2
 
 CUR_BL=`cat $BACKLIGHT`
 CUR_AMB=`cat $LSENSOR`
@@ -39,8 +39,8 @@ while [ 1 ]; do
             BRIGHT=$MIN_BRIGHT
         fi
         BL=$CUR_BL
-        STEP=$(($STEPPING+$DIFF*$SENSITIVITY/$STEPPING/$STEPPING))
         while [ $BL -gt $BRIGHT ]; do
+            STEP=$(($STEPPING+$(($BL-$BRIGHT))/$STEPPING))
             BL=$(($BL-$STEP))
             echo $BL > $BACKLIGHT
             sleep $MAXPOLL
@@ -55,8 +55,8 @@ while [ 1 ]; do
             BRIGHT=$MAX_BRIGHT
         fi
         BL=$CUR_BL
-        STEP=$(($STEPPING+$DIFF/$STEPPING/$STEPPING))
         while [ $BL -lt $BRIGHT ]; do
+            STEP=$(($STEPPING+$(($BRIGHT-$BL))/$STEPPING))
             BL=$(($BL+$STEP))
             echo $BL > $BACKLIGHT
             sleep $MAXPOLL
