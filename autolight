@@ -1,3 +1,60 @@
 #!/bin/sh
 
 #Autolight script
+
+LSENSOR=/sys/bus/iio/devices/iio\:device0/in_illuminance0_input  #Path to sensor
+SCREEN=`ls /sys/class/backlight`
+MAX_BRIGHT=`cat /sys/class/backlight/$SCREEN/max_brightness`
+BACKLIGHT="/sys/class/backlight/$SCREEN/brightness"
+IDLEPOLL=1                                                           #In seconds
+MAXPOLL=0.05                                                         #In seconds
+SENSITIVITY=10
+STEPPING=10
+
+CUR_BL=`cat $BACKLIGHT`
+CUR_AMB=`cat $LSENSOR`
+
+while [ 1 ]; do
+
+    PREV_AMB=$CUR_AMB
+    CUR_AMB=`cat $LSENSOR`
+    PREV_BL=$CUR_BL
+    CUR_BL=`cat $BACKLIGHT`
+    
+    if [ $CUR_AMB -lt $PREV_AMB ]; then
+    
+        DIFF=$(($PREV_AMB-$CUR_AMB))
+        BRIGHT=$(($CUR_BL-$DIFF*$SENSITIVITY))
+        BL=$CUR_BL
+        while [ $BL -gt $BRIGHT ]; do
+            BL=$(($BL-$STEPPING))
+            echo $BL > $BACKLIGHT
+            sleep $MAXPOLL 
+        done
+        WASSET=1
+        
+    elif [ $CUR_AMB -gt $PREV_AMB ]; then
+    
+        DIFF=$(($CUR_AMB-$PREV_AMB))
+        BRIGHT=$(($CUR_BL+$DIFF*$SENSITIVITY))
+        BL=$CUR_BL
+        while [ $BL -lt $BRIGHT ]; do
+            BL=$(($BL+$STEPPING))
+            echo $BL > $BACKLIGHT
+            sleep $MAXPOLL 
+        done
+        WASSET=1
+        
+    else
+        WASSET=0
+    fi
+    
+    # Sleep the script now
+    if [ $WASSET -eq 1 ]; then
+        sleep $MAXPOLL
+    else
+        sleep $IDLEPOLL
+    fi
+    
+done
+
