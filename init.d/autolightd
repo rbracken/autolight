@@ -28,7 +28,7 @@ case "$1" in
   stop)
     echo "Stopping autolight"
     if [ -e $PIDFILE ]; then
-      kill -9 `cat $PIDFILE`
+      kill -15 `cat $PIDFILE`
       rm -f $PIDFILE
     fi 
     ;;

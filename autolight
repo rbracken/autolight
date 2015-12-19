@@ -10,6 +10,8 @@ IDLEPOLL=1                                                          #In seconds
 MAXPOLL=0.05                                                        #In seconds
 SENSITIVITY=10                                                      #Unitless. Try fiddling.
 STEPPING=10                                                         #Transition steps
+MIN_BRIGHT=60
+TOLERANCE=10
 
 CUR_BL=`cat $BACKLIGHT`
 CUR_AMB=`cat $LSENSOR`
@@ -17,19 +19,31 @@ CUR_AMB=`cat $LSENSOR`
 while [ 1 ]; do
 
     PREV_AMB=$CUR_AMB
-    CUR_AMB=`cat $LSENSOR`
+    TMP_AMB=`cat $LSENSOR`
+    DIFF=$(($TMP_AMB - $PREV_AMB))
+    if [ $DIFF -lt 0 ]; then
+        DIFF=$(($DIFF*-1))
+    fi
+    if [ $DIFF -gt $TOLERANCE ]; then
+        CUR_AMB=$TMP_AMB
+    fi
     PREV_BL=$CUR_BL
     CUR_BL=`cat $BACKLIGHT`
+
     
     if [ $CUR_AMB -lt $PREV_AMB ]; then
     
         DIFF=$(($PREV_AMB-$CUR_AMB))
         BRIGHT=$(($CUR_BL-$DIFF*$SENSITIVITY))
+        if [ $BRIGHT -lt $MIN_BRIGHT ]; then
+            BRIGHT=$MIN_BRIGHT
+        fi
         BL=$CUR_BL
+        STEP=$(($STEPPING+$DIFF*$SENSITIVITY/$STEPPING/$STEPPING))
         while [ $BL -gt $BRIGHT ]; do
-            BL=$(($BL-$STEPPING))
+            BL=$(($BL-$STEP))
             echo $BL > $BACKLIGHT
-            sleep $MAXPOLL 
+            sleep $MAXPOLL
         done
         WASSET=1
         
@@ -37,11 +51,15 @@ while [ 1 ]; do
     
         DIFF=$(($CUR_AMB-$PREV_AMB))
         BRIGHT=$(($CUR_BL+$DIFF*$SENSITIVITY))
+        if [ $BRIGHT -gt $MAX_BRIGHT ]; then
+            BRIGHT=$MAX_BRIGHT
+        fi
         BL=$CUR_BL
+        STEP=$(($STEPPING+$DIFF/$STEPPING/$STEPPING))
         while [ $BL -lt $BRIGHT ]; do
-            BL=$(($BL+$STEPPING))
+            BL=$(($BL+$STEP))
             echo $BL > $BACKLIGHT
-            sleep $MAXPOLL 
+            sleep $MAXPOLL
         done
         WASSET=1
         
