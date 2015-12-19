@@ -7,8 +7,8 @@
 # but this is simple and should work on all UNIX-like systems
 
 PIDFILE="/tmp/autolight.pid"            # Path to where pid should be stored. 
-USER="nobody"                           # Do not run as root
-BINPATH="/usr/bin/autolight"            # Path to bin or bin name
+USER="nobody"                           # Don't run as root unless necessary (permissions)
+BINPATH="/usr/bin/autolight"            # Path to bin OR bin name
 
 if [ `whoami` != "root" ]; then
     echo "Script must be run as root. Usage: $0 {start|stop}"
@@ -21,7 +21,7 @@ case "$1" in
       echo "Autolight already running!"
     else
       echo "Starting autolight"
-      nohup su $USER -c "exec $BINPATH" &
+      nohup su $USER -s /bin/sh -c "exec $BINPATH" &
       echo -n $! > $PIDFILE
     fi
     ;;
