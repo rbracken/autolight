@@ -9,9 +9,9 @@ BACKLIGHT="/sys/class/backlight/$SCREEN/brightness"
 IDLEPOLL=1                                                          #In seconds
 MAXPOLL=0.05                                                        #In seconds
 SENSITIVITY=10                                                      #Unitless. Try fiddling.
-STEPPING=5                                                         #Transition steps
-MIN_BRIGHT=60
-TOLERANCE=2
+STEPPING=5                                                          #Transition stepping
+MIN_BRIGHT=60                                                       #Set to personal taste
+TOLERANCE=2                                                         #Light level precision
 
 CUR_BL=`cat $BACKLIGHT`
 CUR_AMB=`cat $LSENSOR`
