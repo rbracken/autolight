@@ -28,6 +28,9 @@ values in the delux script, at the top:
 - Tolerance: Minimum difference between ambient light measurements that triggers a change
     in display brightness. Your light sensor may be more/less sentitive than the defaults.
     Higher value = higher threshold change, lower value = lower threshold change.
+- Mac Mode: Enabling this makes delux emulate the behaviour of Apple Macbook dimmers -- 
+    that is to say slow, linear transitions between brightness levels. This option is good 
+    for users who dislike abrupt brightness changes. 
 
     
 # Installation
@@ -47,10 +50,9 @@ This script was hacked together in about 15 minutes, and is by no means perfect.
 see where it can be improved, please suggest an improvement. Known ToDo's include:
 - Incorporate / investigate also using I.R. sensor data for more reliable brightness
     tracking
-- Find a better way to poll (reduce CPU load)
 - Add a makefile or proper install script.
-- Transition to another lang for better maintainability -- maybe Python/C/C++
+- Transition (currently in progress) to C lang for performance and maintainability
 - Add LUTs to map ambient brightness directly to screen brightness
-- Add 'Mac Compat' mode -- Emulate behviour of Mac brightness daemon
+- Investigate D-Bus / HAL support
 
 
