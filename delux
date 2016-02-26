@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#This is the autolight script. To run as a daemon, see init.d/autolightd.
+#This is the autolight script. To run as a daemon, see init.d/deluxd.
 
 LSENSOR=/sys/bus/iio/devices/iio\:device0/in_illuminance0_input     #Path to sensor
 SCREEN=`ls /sys/class/backlight`                                    #Display device

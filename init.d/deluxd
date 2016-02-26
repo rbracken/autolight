@@ -6,9 +6,9 @@
 # This is just a stub for starting the service. Definitely are better solutions,
 # but this is simple and should work on all UNIX-like systems
 
-PIDFILE="/tmp/autolight.pid"            # Path to where pid should be stored. 
+PIDFILE="/tmp/delux.pid"            # Path to where pid should be stored. 
 USER="nobody"                           # Don't run as root unless necessary (permissions)
-BINPATH="/usr/bin/autolight"            # Path to bin OR bin name
+BINPATH="/usr/bin/delux"            # Path to bin OR bin name
 
 if [ `whoami` != "root" ]; then
     echo "Script must be run as root. Usage: $0 {start|stop}"
@@ -18,15 +18,15 @@ fi
 case "$1" in
   start)
     if [ -e $PIDFILE ]; then
-      echo "Autolight already running!"
+      echo "Delux already running!"
     else
-      echo "Starting autolight"
+      echo "Starting delux"
       nohup su $USER -s /bin/sh -c "exec $BINPATH" &
       echo -n $! > $PIDFILE
     fi
     ;;
   stop)
-    echo "Stopping autolight"
+    echo "Stopping delux"
     if [ -e $PIDFILE ]; then
       kill -15 `cat $PIDFILE`
       rm -f $PIDFILE
