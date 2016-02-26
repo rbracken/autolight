@@ -31,6 +31,10 @@ values in the delux script, at the top:
 - Mac Mode: Enabling this makes delux emulate the behaviour of Apple Macbook dimmers -- 
     that is to say slow, linear transitions between brightness levels. This option is good 
     for users who dislike abrupt brightness changes. 
+- Macsteps: Maximum number of steps that can be executed before exiting to re-check
+    brightness sensor. Lower numbers mean faster response to a change in sensor values
+    while brightness is being set. Exessively low numbers will burn CPU time. A good rule
+    of thumb is $macsteps*$maxpoll = ~1 second
 
     
 # Installation

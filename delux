@@ -13,6 +13,7 @@ STEPPING=5                                                          #Transition 
 MIN_BRIGHT=60                                                       #Set to personal taste
 TOLERANCE=2                                                         #Light level precision
 MACMODE=0                                                           #Emulate MacOSX behaviour
+MACSTEPS=20                                                         #Max steps b/w interrupts
 
 CUR_BL=`cat $BACKLIGHT`
 CUR_AMB=`cat $LSENSOR`
@@ -36,6 +37,13 @@ while [ 1 ]; do
     
         DIFF=$(($PREV_AMB-$CUR_AMB))
         BRIGHT=$(($CUR_BL-$DIFF*$SENSITIVITY))
+        BRDIFF=$(($BL-$BRIGHT))
+        if [ $MACMODE -eq 1 ]; then
+            if [ $BRDIFF -gt $(($MACSTEPS*$STEPPING)) ]; then
+                BRIGHT=$(($CUR_BL-$(($MACSTEPS*$STEPPING))))
+                CUR_AMB=$(($(($(($BRIGHT-$CUR_BL))/$SENSITIVITY))+$PREV_AMB))
+            fi
+        fi
         if [ $BRIGHT -lt $MIN_BRIGHT ]; then
             BRIGHT=$MIN_BRIGHT
         fi
@@ -56,6 +64,13 @@ while [ 1 ]; do
     
         DIFF=$(($CUR_AMB-$PREV_AMB))
         BRIGHT=$(($CUR_BL+$DIFF*$SENSITIVITY))
+        BRDIFF=$(($BRIGHT-$BL))
+        if [ $MACMODE -eq 1 ]; then
+            if [ $BRDIFF -gt $(($MACSTEPS*$STEPPING)) ]; then
+                BRIGHT=$(($CUR_BL+$(($MACSTEPS*$STEPPING))))
+                CUR_AMB=$(($(($(($BRIGHT-$CUR_BL))/$SENSITIVITY))+$PREV_AMB))
+            fi
+        fi
         if [ $BRIGHT -gt $MAX_BRIGHT ]; then
             BRIGHT=$MAX_BRIGHT
         fi
