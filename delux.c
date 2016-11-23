@@ -63,8 +63,6 @@ int calc_brightness( int ** luxtab, int tablen, int sensor ) {
             // for brightness and stop here
             break;
         }
-        // Otherwise, try against the *next* entry!
-        i++;
     }
     return brightness;
 }
@@ -100,7 +98,7 @@ int ** parse_luxtab(FILE *fp, int * tablen) {
         puts("Luxtab corrupted or unreadable. Exiting");
         exit(1);
     }
-    int ** luxtab = malloc((lines-1)*sizeof(int*));
+    int ** luxtab = malloc((lines)*sizeof(int*));
     count=0; 
     int curline=0;
     char line[64];
@@ -153,6 +151,7 @@ int main() {
         // Calc new "target" brightness
         targ_brightness = calc_brightness(luxtab, tablen, ambl); 
 
+        printf("%d\n", targ_brightness);
         // Write new brightness out 
         // Step it by "maxstep" to the value we want
         if ( targ_brightness - brightness < MAXSTEP && targ_brightness - brightness > 0) {
