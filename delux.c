@@ -58,9 +58,11 @@ int calc_brightness( int ** luxtab, int tablen, int sensor ) {
     int brightness, i=0;
     for(i=0;i<tablen;i++) {
         brightness = luxtab[i][1];
-        if(luxtab[i][0] >= sensor) {
+        if(luxtab[i][0] > sensor) {
             //Base case: we need to select this value
             // for brightness and stop here
+            // "Greater than" --> prevents oscillation
+            // between states of brightness
             break;
         }
     }
