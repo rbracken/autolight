@@ -21,7 +21,7 @@ case "$1" in
       echo "Delux already running!"
     else
       echo "Starting delux"
-      nohup su $USER -s /bin/sh -c "exec $BINPATH" &
+      nohup su $USER -s /bin/sh -c "exec $BINPATH" 2>&1 >/dev/null &
       echo -n $! > $PIDFILE
     fi
     ;;
