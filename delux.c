@@ -5,7 +5,7 @@
 
 // Some global variables
 // For "MacMode" -- size for smoothness.
-#define MAXSTEP 2
+#define MAXSTEP 5
 // This only works on Intel GPU laptops
 char screenpath[] = "/sys/class/backlight/intel_backlight/brightness";          
 // Known to work on Acer C720 -- other laptops might have different sensor paths
@@ -44,7 +44,7 @@ int get_brightness(char *fp) {
     return get_ambient(fp);
 }
 
-int calc_brightness( int ** luxtab, int sensor ) {
+int calc_brightness( int ** luxtab, int tablen, int sensor ) {
     // Based on the entries in the luxtab
     // this calculates the nearest approximate
     // screen brightness that should be selected.
@@ -56,11 +56,11 @@ int calc_brightness( int ** luxtab, int sensor ) {
     //                    --> scrn_bright = luxtab[1][1]
 
     int brightness, i=0;
-    while(luxtab[i] != NULL) {
+    for(i=0;i<tablen;i++) {
+        brightness = luxtab[i][1];
         if(luxtab[i][0] >= sensor) {
             //Base case: we need to select this value
             // for brightness and stop here
-            brightness = luxtab[i][1];
             break;
         }
         // Otherwise, try against the *next* entry!
@@ -69,7 +69,7 @@ int calc_brightness( int ** luxtab, int sensor ) {
     return brightness;
 }
 
-int **parse_luxtab(FILE *fp) {
+int ** parse_luxtab(FILE *fp, int * tablen) {
     // Creates a in-memory structure which can be used
     // to look up the value for brightness the screen should have for
     // a given sensor brightness reading. Basic format:
@@ -100,7 +100,7 @@ int **parse_luxtab(FILE *fp) {
         puts("Luxtab corrupted or unreadable. Exiting");
         exit(1);
     }
-    int **luxtab = malloc((lines-1)*sizeof(int*));
+    int ** luxtab = malloc((lines-1)*sizeof(int*));
     count=0; 
     int curline=0;
     char line[64];
@@ -120,17 +120,18 @@ int **parse_luxtab(FILE *fp) {
             curline++;
         }
     }
+    *tablen = lines;
     return luxtab;
 }
 
 int main() {
-    int **luxtab = NULL;
-    int brightness, targ_brightness; // Placeholder value (for now!)
+    int ** luxtab;
+    int tablen, brightness, targ_brightness; // Placeholder value (for now!)
    
     //luxtab -- read in table of brightness values
     FILE *fp = NULL;
     if(fp = fopen(luxtabpath, "r")) {
-        luxtab = parse_luxtab(fp);
+        luxtab = parse_luxtab(fp, &tablen);
         fclose(fp);
     } 
     else {
@@ -145,11 +146,12 @@ int main() {
     while ( 1 ) {
         // Read current ambient brightness  
         int ambl = get_ambient(sensorpath); 
+        //printf("%d\n", ambl); 
         if(ambl == -1) {
             return 1;
         }
         // Calc new "target" brightness
-        targ_brightness = calc_brightness(luxtab, ambl); 
+        targ_brightness = calc_brightness(luxtab, tablen, ambl); 
 
         // Write new brightness out 
         // Step it by "maxstep" to the value we want
@@ -173,7 +175,7 @@ int main() {
             puts("Failed to set brightness");
             return 1;
         }
-        usleep(2000);
+        usleep(500);
     }
 
     return 0;
