@@ -141,7 +141,7 @@ int main() {
 
     // Get current brightness reading
     brightness = get_brightness(screenpath);
-
+    int adjust = 0;
     // Main program loop -- we end up here once everything is all done
     while ( 1 ) {
         // Read current ambient brightness  
@@ -158,24 +158,33 @@ int main() {
         if ( targ_brightness - brightness < MAXSTEP && targ_brightness - brightness > 0) {
             // Step is too small; just set the brightness directly
             brightness = targ_brightness;
+            adjust = 1;
         }
         else if ( brightness - targ_brightness < MAXSTEP && targ_brightness - targ_brightness > 0 ) {
             // Step is too small; just set the brightness directly
             brightness = targ_brightness;
+            adjust = 1;
         }
         else if ( targ_brightness < brightness ) {
             // Decrease our brightness
             brightness -= MAXSTEP;
+            adjust = 1;
         }
         else if ( targ_brightness > brightness ) {
             // Increase our brightness
             brightness += MAXSTEP;
+            adjust = 1;
         }
         if(upd_brightness(screenpath, brightness)) {
             puts("Failed to set brightness");
             return 1;
         }
-        usleep(500);
+        if ( adjust == 1 ) {
+            usleep(500); // We might need more updates soon; short sleep
+            adjust = 0;
+        }
+        else usleep(1000000); // Sleep 1 second
+
     }
 
     return 0;
