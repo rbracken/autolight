@@ -4,9 +4,9 @@ all:
 	chmod 755 delux
 	@echo "Compilation done. Run \`make install\` to install delux"
 install:
-	@echo "This operation requires root privileges"
+	@echo "Note: this operation requires root privileges"
 	mkdir -p /etc/delux
-	cp delux delux.legacy /usr/sbin/delux
+	cp delux delux.legacy /usr/sbin/
 	cp luxtab.csv /etc/delux/
 	cp init.d/deluxd /etc/init.d/
 	chown -R root: /etc/delux
