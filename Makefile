@@ -4,6 +4,7 @@ all:
 	chmod 755 delux
 	@echo "Compilation done. Run \`make install\` to install delux"
 install:
+	@echo "Run this *after* you run \`make\` to compile the binary"
 	@echo "Note: this operation requires root privileges"
 	mkdir -p /etc/delux
 	cp delux delux.legacy /usr/sbin/
