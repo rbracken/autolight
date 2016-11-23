@@ -57,6 +57,7 @@ int ** shift_luxtab(int ** luxtab, int tablen, int amount) {
     for(i=0;i<tablen;i++) {
         luxtab[i][1] += amount;
     }
+    return luxtab;
 }
 
 int calc_brightness( int ** luxtab, int tablen, int sensor ) {
@@ -198,6 +199,7 @@ int main() {
             else {
                 // Precision -- so that it's not visually jarring
                 brightness -= maxstep;
+                adjust = 1;
             }
         }
         else if ( targ_brightness > brightness ) {
@@ -242,11 +244,11 @@ int main() {
         brightness = get_brightness(screenpath);
         if(brightness > last_brightness) {
             // Need to shift luxtab up
-            luxtab = shift_luxtab(luxtab, tablen, (brightness - last_brightness));
+            luxtab = shift_luxtab(luxtab, tablen, (brightness - targ_brightness));
         }
         else if (brightness < last_brightness) {
             // Need to shift luxtab down
-            luxtab = shift_luxtab(luxtab, tablen, (brightness - last_brightness));
+            luxtab = shift_luxtab(luxtab, tablen, (brightness - targ_brightness));
         }
     }
 
