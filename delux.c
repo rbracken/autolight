@@ -3,11 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// Some global variables
-// For "MacMode" -- size for smoothness.
-#define MAXSTEP 5
-// This only works on Intel GPU laptops
+// These only works on Intel GPU laptops
 char screenpath[] = "/sys/class/backlight/intel_backlight/brightness";          
+char maxbrightdev[] = "/sys/class/backlight/intel_backlight/max_brightness";          
 // Known to work on Acer C720 -- other laptops might have different sensor paths
 char sensorpath[] = "/sys/bus/iio/devices/iio:device0/in_illuminance0_input";  
 char luxtabpath[] = "/etc/delux/luxtab.csv";
@@ -15,7 +13,6 @@ char luxtabpath[] = "/etc/delux/luxtab.csv";
 
 int upd_brightness( char *filepath, int brightness ) {
     FILE *fp;
-
     if(fp = fopen(filepath, "w+")) {
         fprintf(fp, "%d\n", brightness);
         fclose(fp);
@@ -25,7 +22,8 @@ int upd_brightness( char *filepath, int brightness ) {
     return 1;
 }
 
-int get_ambient(char *filepath) {
+int read_dev(char *filepath) {
+    // Reads the value from devices, given a file path
     FILE *fp;
     if(fp = fopen(filepath, "r")) {
         char buffer[64];
@@ -34,14 +32,31 @@ int get_ambient(char *filepath) {
         fclose(fp);
         return val;   
     }
-    printf("Could not read light sensor\n");
+    printf("Could not read device\n");
     return -1;
 }
 
-int get_brightness(char *fp) {
-    // Just wraps around get_ambient to use for
-    // other purposes
-    return get_ambient(fp);
+int get_ambient(char *filepath) {
+    //Wrapper around read_dev
+    return read_dev(filepath);
+}
+
+int get_brightness(char *filepath) {
+    //Wrapper around read_dev
+    return read_dev(filepath);
+}
+
+int ** shift_luxtab(int ** luxtab, int tablen, int amount) {
+    // Lets the user manually set the brightness of their laptop
+    // with the brightness+ / brightness- buttons without having
+    // delux conflict with the setting.
+    //
+    // Take in the "old" luxtab,  returns the "new" shifted luxtab
+    // which accounts for the new brightness settings
+    int i;
+    for(i=0;i<tablen;i++) {
+        luxtab[i][1] += amount;
+    }
 }
 
 int calc_brightness( int ** luxtab, int tablen, int sensor ) {
@@ -124,8 +139,13 @@ int ** parse_luxtab(FILE *fp, int * tablen) {
 
 int main() {
     int ** luxtab;
-    int tablen, brightness, targ_brightness; // Placeholder value (for now!)
-   
+    int tablen, last_brightness, brightness, targ_brightness, maxstep;
+
+    // Calculate our MacMode stepping value
+    // based on the "max_brightness" of the backlight device
+    maxstep = (int)((read_dev(maxbrightdev) / 1000) + 1);
+    if( maxstep < 1 ) maxstep = 1;
+
     //luxtab -- read in table of brightness values
     FILE *fp = NULL;
     if(fp = fopen(luxtabpath, "r")) {
@@ -144,46 +164,90 @@ int main() {
     while ( 1 ) {
         // Read current ambient brightness  
         int ambl = get_ambient(sensorpath); 
-        //printf("%d\n", ambl); 
         if(ambl == -1) {
             return 1;
         }
         // Calc new "target" brightness
         targ_brightness = calc_brightness(luxtab, tablen, ambl); 
 
-        printf("%d\n", targ_brightness);
         // Write new brightness out 
         // Step it by "maxstep" to the value we want
-        if ( targ_brightness - brightness < MAXSTEP && targ_brightness - brightness > 0) {
+        if ( targ_brightness - brightness < maxstep && targ_brightness - brightness > 0) {
             // Step is too small; just set the brightness directly
             brightness = targ_brightness;
             adjust = 1;
         }
-        else if ( brightness - targ_brightness < MAXSTEP && targ_brightness - targ_brightness > 0 ) {
+        else if ( brightness - targ_brightness < maxstep && targ_brightness - targ_brightness > 0 ) {
             // Step is too small; just set the brightness directly
             brightness = targ_brightness;
             adjust = 1;
         }
         else if ( targ_brightness < brightness ) {
             // Decrease our brightness
-            brightness -= MAXSTEP;
-            adjust = 1;
+            int diff = brightness - targ_brightness;
+            if ( diff / maxstep > 100 ) {
+                // For large diferences -- fast transition
+                brightness -= 6*maxstep;
+                adjust = 3;
+            }
+            else if ( diff / maxstep > 50 ) {
+                // For moderate differences -- faster convergence
+                brightness -= 3*maxstep;
+                adjust = 2;
+            }
+            else {
+                // Precision -- so that it's not visually jarring
+                brightness -= maxstep;
+            }
         }
         else if ( targ_brightness > brightness ) {
             // Increase our brightness
-            brightness += MAXSTEP;
-            adjust = 1;
+            int diff = targ_brightness - brightness;
+            if ( diff / maxstep > 100 ) {
+                // For large diferences -- fast transition
+                brightness += 6*maxstep;
+                adjust = 3;
+            }
+            else if ( diff / maxstep > 50 ) {
+                // For moderate differences -- faster convergence
+                brightness += 3*maxstep;
+                adjust = 2;
+            }
+            else {
+                // Precision -- so that it's not visually jarring
+                brightness += maxstep;
+                adjust = 1;
+            }
         }
         if(upd_brightness(screenpath, brightness)) {
             puts("Failed to set brightness");
             return 1;
         }
-        if ( adjust == 1 ) {
-            usleep(500); // We might need more updates soon; short sleep
-            adjust = 0;
-        }
-        else usleep(1000000); // Sleep 1 second
+        
+        // Update out last_brightness measure
+        last_brightness = brightness;
 
+        switch(adjust) { // We might need more updates soon; short sleep
+            case 0:  usleep(1000000); break;// Sleep 1 second
+            case 1:  usleep(600); break;
+            case 2:  usleep(400); break;
+            case 3:  usleep(300); break;
+            default: usleep(1000000); break;// Sleep 1 second
+        }
+        adjust = 0;
+
+        // Check if we need to shift the luxtab
+        // at end of cycle --> waits to see if the user
+        // overrode the settings with the brightness +/- buttons
+        brightness = get_brightness(screenpath);
+        if(brightness > last_brightness) {
+            // Need to shift luxtab up
+            luxtab = shift_luxtab(luxtab, tablen, (brightness - last_brightness));
+        }
+        else if (brightness < last_brightness) {
+            // Need to shift luxtab down
+            luxtab = shift_luxtab(luxtab, tablen, (brightness - last_brightness));
+        }
     }
 
     return 0;
