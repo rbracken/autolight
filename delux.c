@@ -58,11 +58,9 @@ int calc_brightness( int ** luxtab, int tablen, int sensor ) {
     int brightness, i=0;
     for(i=0;i<tablen;i++) {
         brightness = luxtab[i][1];
-        if(luxtab[i][0] > sensor) {
+        if(luxtab[i][0] >= sensor) {
             //Base case: we need to select this value
             // for brightness and stop here
-            // "Greater than" --> prevents oscillation
-            // between states of brightness
             break;
         }
     }
@@ -87,7 +85,7 @@ int ** parse_luxtab(FILE *fp, int * tablen) {
 
     // Read the luxtab into memory 
     char buffer[2048];
-    int len = (int) fread(&buffer, sizeof(char), sizeof(buffer), fp);
+    int len = (int) fread(buffer, sizeof(char), sizeof(buffer), fp);
     int lines = 0, count, i;
 
     for(i=0;i<len;i++) {
