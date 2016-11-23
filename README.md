@@ -6,11 +6,37 @@ userland tools which make use of it.
 Delux should work on any Linux system, as long as the hardware has a light sensor and 
 the kernel has the proper module loaded.
 
+Delux comes in two flavours: delux and delux.legacy. Delux is the current working version,
+re-implemented in C for speed and lightweight use of CPU (important on a laptop!). It uses
+look-up-tables (LUTs) to precisely map ambient light sensor values to screen brightness.
+Delux legacy is written in Bash, and does *not* perform any LUT lookups for an appropriate brightness 
+value, and instead does relative +/- adjustments based on the current user setting. It is 
+primarily included for historic reasons, but may be useful for those looking for a
+scriptable version of delux. 
 
-# Use and Configuration
-Delux can either be run as a standalone script (delux), or run as a daemon with 
-the provided init script (init.d/deluxd). Configuration is dead simple: just change the 
-values in the delux script, at the top:
+# Use and Configuration 
+Delux reads its configuration from /etc/delux/luxtab.csv, which is a comma-separated
+value table. Each line represents one tuple of {sensorReading,brightnessSetting}. The default
+included luxtab is optimized for the Acer C720 -- each laptop manufacturer may have different
+sensor and brightness values. You may want to spend some time experimenting!
+
+delux.c contains a few pre-defined values, which might need changing depending on your
+specific hardware:
+- sensorpath: The path to your light sensor. Usually found in `/sys/bus/iio/devices/iio` if
+    the default does not already work.
+- screenpath: The path to the backlight device for your screen. Usually this is found as
+    `/sys/class/backlight/$SCREEN/brightness` -- $SCREEN will change based on manufacturer.
+    The default $SCREEN is `intel_backlight`, which should work for most recent Intel integrated GPUs.
+- luxtabpath: Path to the configuration CSV for delux. By default, this is `/etc/delux/luxtab.csv`
+
+Future versions will  automatically configure the sensor and display.
+
+# Use and Configuration [Legacy]
+NOTE: This section applies to the delux.legacy script, and is not longer very useful.
+
+Delux can either be run as a standalone script (delux.legacy), or run as a daemon with 
+the provided init script (init.d/deluxd). Configuration is dead simple - just change 
+the values in the delux script, at the top:
 - Lsensor: The path to your light sensor. Usually found in `/sys/bus/iio/devices/iio` if
     the default does not already work.
 - Sensitivity: How many brightness units the screen will change for every brightness
@@ -38,25 +64,29 @@ values in the delux script, at the top:
 
     
 # Installation
-For a basic install, just run the delux script from the directory. To enable delux
-to start at boot, copy the delux script to `/usr/bin/delux` and copy the 
+To build and install delux, run (requires gcc/clang & make):
+    - make 
+    - sudo make install
+..and you're done! Precompiled versions can omit the `make` step, instead just running
+`make install`. 
+
+To enable delux to start at boot, copy the delux script to `/usr/bin/delux` and copy the 
 init.d/deluxd script to `/etc/init.d/deluxd`. Update your init or rc.d to load the
 script at boottime, and you're off to the races (on Ubuntu/Debian, this command is 
 `update-rc.d deluxd defaults`).
 
-By default, the daemon runs as the `nobody` user. If you encounter permissions issues when
-trying to set the backlight, edit the deluxd init script, and change the user to your
-desktop user (or if you *still* encounter issues, root).
-   
+By default, the daemon runs as the `root` user, for hardware permision reasons. Future
+releases may use D-Bus / HAL to overcome this restriction.
+
+Rename delux.legacy to delux and re-run `make install` if you wish to use the legacy
+version as your default.
     
 # ToDo
 This script was hacked together in about 15 minutes, and is by no means perfect. If you 
 see where it can be improved, please suggest an improvement. Known ToDo's include:
 - Incorporate / investigate also using I.R. sensor data for more reliable brightness
     tracking
-- Add a makefile or proper install script.
-- Transition (currently in progress) to C lang for performance and maintainability
-- Add LUTs to map ambient brightness directly to screen brightness
 - Investigate D-Bus / HAL support
+- Add "user override" to change brightness settings over sensor-derived value
 
 
