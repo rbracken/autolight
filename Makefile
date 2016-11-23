@@ -2,9 +2,9 @@
 all: 
 	gcc -O3 delux.c -o delux
 	chmod 755 delux
-	echo "Compilation done. Run \`make install\` to install delux"
+	@echo "Compilation done. Run \`make install\` to install delux"
 install:
-	echo "This operation requires root privileges"
+	@echo "This operation requires root privileges"
 	mkdir -p /etc/delux
 	cp delux delux.legacy /usr/sbin/delux
 	cp luxtab.csv /etc/delux/
