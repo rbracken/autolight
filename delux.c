@@ -160,6 +160,7 @@ int main() {
 
     // Get current brightness reading
     brightness = get_brightness(screenpath);
+    last_brightness = brightness;
     int adjust = 0;
     // Main program loop -- we end up here once everything is all done
     while ( 1 ) {
@@ -171,17 +172,37 @@ int main() {
         // Calc new "target" brightness
         targ_brightness = calc_brightness(luxtab, tablen, ambl); 
 
+        // Check if we need to shift the luxtab
+        // at end of cycle --> waits to see if the user
+        // overrode the settings with the brightness +/- buttons
+        brightness = get_brightness(screenpath);
+
         // Write new brightness out 
         // Step it by "maxstep" to the value we want
-        if ( targ_brightness - brightness < maxstep && targ_brightness - brightness > 0) {
+        if ( brightness != last_brightness ) {
+            // Do nothing this round; just shift up the luxtab to the 
+            // new brightness values, but quickly check after for brightness
+            adjust = 3;
+        }
+        else if ( targ_brightness - brightness < maxstep && targ_brightness - brightness > 0) {
             // Step is too small; just set the brightness directly
             brightness = targ_brightness;
             adjust = 1;
+            if(upd_brightness(screenpath, brightness)) {
+            puts("Failed to set brightness");
+            return 1;
+            }
+            last_brightness = brightness;
         }
         else if ( brightness - targ_brightness < maxstep && targ_brightness - targ_brightness > 0 ) {
             // Step is too small; just set the brightness directly
             brightness = targ_brightness;
             adjust = 1;
+            if(upd_brightness(screenpath, brightness)) {
+                puts("Failed to set brightness");
+                return 1;
+            }
+            last_brightness = brightness;
         }
         else if ( targ_brightness < brightness ) {
             // Decrease our brightness
@@ -201,6 +222,11 @@ int main() {
                 brightness -= maxstep;
                 adjust = 1;
             }
+            if(upd_brightness(screenpath, brightness)) {
+                puts("Failed to set brightness");
+                return 1;
+            }
+            last_brightness = brightness;
         }
         else if ( targ_brightness > brightness ) {
             // Increase our brightness
@@ -220,15 +246,25 @@ int main() {
                 brightness += maxstep;
                 adjust = 1;
             }
+            if(upd_brightness(screenpath, brightness)) {
+                puts("Failed to set brightness");
+                return 1;
+            }
+            last_brightness = brightness;
         }
-        if(upd_brightness(screenpath, brightness)) {
-            puts("Failed to set brightness");
-            return 1;
-        }
-        
+       
         // Update out last_brightness measure
-        last_brightness = brightness;
-
+        if(brightness > last_brightness) {
+            // Need to shift luxtab up
+            luxtab = shift_luxtab(luxtab, tablen, (brightness - targ_brightness));
+            last_brightness = brightness;
+        }
+        else if (brightness < last_brightness) {
+            // Need to shift luxtab down
+            luxtab = shift_luxtab(luxtab, tablen, (brightness - targ_brightness));
+            last_brightness = brightness;
+        }
+       
         switch(adjust) { // We might need more updates soon; short sleep
             case 0:  usleep(1000000); break;// Sleep 1 second
             case 1:  usleep(3600); break;
@@ -238,18 +274,6 @@ int main() {
         }
         adjust = 0;
 
-        // Check if we need to shift the luxtab
-        // at end of cycle --> waits to see if the user
-        // overrode the settings with the brightness +/- buttons
-        brightness = get_brightness(screenpath);
-        if(brightness > last_brightness) {
-            // Need to shift luxtab up
-            luxtab = shift_luxtab(luxtab, tablen, (brightness - targ_brightness));
-        }
-        else if (brightness < last_brightness) {
-            // Need to shift luxtab down
-            luxtab = shift_luxtab(luxtab, tablen, (brightness - targ_brightness));
-        }
     }
 
     return 0;
