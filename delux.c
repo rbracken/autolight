@@ -231,9 +231,9 @@ int main() {
 
         switch(adjust) { // We might need more updates soon; short sleep
             case 0:  usleep(1000000); break;// Sleep 1 second
-            case 1:  usleep(600); break;
-            case 2:  usleep(400); break;
-            case 3:  usleep(300); break;
+            case 1:  usleep(3600); break;
+            case 2:  usleep(1800); break;
+            case 3:  usleep(900); break;
             default: usleep(1000000); break;// Sleep 1 second
         }
         adjust = 0;
