@@ -12,6 +12,7 @@ char luxtabpath[] = "/etc/delux/luxtab.csv";
 
 
 int upd_brightness( char *filepath, int brightness ) {
+    // Writes to the /sys/bus/iio device that controls brightness 
     FILE *fp;
     if(fp = fopen(filepath, "w+")) {
         fprintf(fp, "%d\n", brightness);
@@ -24,6 +25,7 @@ int upd_brightness( char *filepath, int brightness ) {
 
 int read_dev(char *filepath) {
     // Reads the value from devices, given a file path
+    // to the file that represents the device
     FILE *fp;
     if(fp = fopen(filepath, "r")) {
         char buffer[64];
@@ -119,6 +121,7 @@ int ** parse_luxtab(FILE *fp, int * tablen) {
     int curline=0;
     char line[64];
     // TODO reimplement ALL this with strtok 
+    // and add some error checking properly
     for(i=0;i<len;i++) {
         line[count] = buffer[i];
         count++;
@@ -163,6 +166,7 @@ int main() {
     last_brightness = brightness;
     int adjust = 0;
     // Main program loop -- we end up here once everything is all done
+    // and poll sensor to make changes
     while ( 1 ) {
         // Read current ambient brightness  
         int ambl = get_ambient(sensorpath); 
@@ -184,76 +188,65 @@ int main() {
             // new brightness values, but quickly check after for brightness
             adjust = 3;
         }
-        else if ( targ_brightness - brightness < maxstep && targ_brightness - brightness > 0) {
-            // Step is too small; just set the brightness directly
-            brightness = targ_brightness;
-            adjust = 1;
-            if(upd_brightness(screenpath, brightness)) {
-            puts("Failed to set brightness");
-            return 1;
-            }
-            last_brightness = brightness;
-        }
-        else if ( brightness - targ_brightness < maxstep && targ_brightness - targ_brightness > 0 ) {
-            // Step is too small; just set the brightness directly
-            brightness = targ_brightness;
-            adjust = 1;
-            if(upd_brightness(screenpath, brightness)) {
-                puts("Failed to set brightness");
-                return 1;
-            }
-            last_brightness = brightness;
-        }
-        else if ( targ_brightness < brightness ) {
-            // Decrease our brightness
-            int diff = brightness - targ_brightness;
-            if ( diff / maxstep > 100 ) {
-                // For large diferences -- fast transition
-                brightness -= 6*maxstep;
-                adjust = 3;
-            }
-            else if ( diff / maxstep > 50 ) {
-                // For moderate differences -- faster convergence
-                brightness -= 3*maxstep;
-                adjust = 2;
-            }
-            else {
-                // Precision -- so that it's not visually jarring
-                brightness -= maxstep;
+        else {
+            if ( targ_brightness - brightness < maxstep && targ_brightness - brightness > 0) {
+                // Step is too small; just set the brightness directly
+                brightness = targ_brightness;
                 adjust = 1;
             }
-            if(upd_brightness(screenpath, brightness)) {
-                puts("Failed to set brightness");
-                return 1;
-            }
-            last_brightness = brightness;
-        }
-        else if ( targ_brightness > brightness ) {
-            // Increase our brightness
-            int diff = targ_brightness - brightness;
-            if ( diff / maxstep > 100 ) {
-                // For large diferences -- fast transition
-                brightness += 6*maxstep;
-                adjust = 3;
-            }
-            else if ( diff / maxstep > 50 ) {
-                // For moderate differences -- faster convergence
-                brightness += 3*maxstep;
-                adjust = 2;
-            }
-            else {
-                // Precision -- so that it's not visually jarring
-                brightness += maxstep;
+            else if ( brightness - targ_brightness < maxstep && targ_brightness - targ_brightness > 0 ) {
+                // Step is too small; just set the brightness directly
+                brightness = targ_brightness;
                 adjust = 1;
             }
+            else if ( targ_brightness < brightness ) {
+                // Decrease our brightness
+                int diff = brightness - targ_brightness;
+                if ( diff / maxstep > 100 ) {
+                    // For large diferences -- fast transition
+                    brightness -= 6*maxstep;
+                    adjust = 3;
+                }
+                else if ( diff / maxstep > 50 ) {
+                    // For moderate differences -- faster convergence
+                    brightness -= 3*maxstep;
+                    adjust = 2;
+                }
+                else {
+                    // Precision -- so that it's not visually jarring
+                    brightness -= maxstep;
+                    adjust = 1;
+                }
+            }
+            else if ( targ_brightness > brightness ) {
+                // Increase our brightness
+                int diff = targ_brightness - brightness;
+                if ( diff / maxstep > 100 ) {
+                    // For large diferences -- fast transition
+                    brightness += 6*maxstep;
+                    adjust = 3;
+                }
+                else if ( diff / maxstep > 50 ) {
+                    // For moderate differences -- faster convergence
+                    brightness += 3*maxstep;
+                    adjust = 2;
+                }
+                else {
+                    // Precision -- so that it's not visually jarring
+                    brightness += maxstep;
+                    adjust = 1;
+                }
+            }
+            // Now that we've changed the brightness, update
+            // the screen to this brightness (and change the last_brightness reference)
             if(upd_brightness(screenpath, brightness)) {
                 puts("Failed to set brightness");
                 return 1;
             }
             last_brightness = brightness;
-        }
-       
-        // Update out last_brightness measure
+        } 
+        // Update our luxtab brightness reference, since it looks like the
+        // user manually adjusted brightness. Centre around new value.
         if(brightness > last_brightness) {
             // Need to shift luxtab up
             luxtab = shift_luxtab(luxtab, tablen, (brightness - targ_brightness));
@@ -265,6 +258,10 @@ int main() {
             last_brightness = brightness;
         }
        
+        // Sleep before next poll
+        // lower usleep() times increase CPU usage unecessarily
+        // too high usleep() times make transitions appear choppy
+        // and can be visually jarring
         switch(adjust) { // We might need more updates soon; short sleep
             case 0:  usleep(1000000); break;// Sleep 1 second
             case 1:  usleep(3600); break;
@@ -272,6 +269,8 @@ int main() {
             case 3:  usleep(900); break;
             default: usleep(1000000); break;// Sleep 1 second
         }
+
+        // Reset the adjustment back to base type
         adjust = 0;
 
     }
