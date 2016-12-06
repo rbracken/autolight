@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "config.h"
+#include "paths.h"
 
 
 // Pull definitions in from config.h

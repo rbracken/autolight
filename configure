@@ -623,6 +623,7 @@ ac_includes_default="\
 #endif"
 
 ac_subst_vars='LTLIBOBJS
+UDEVADM
 LIBOBJS
 EGREP
 GREP
@@ -3389,14 +3390,55 @@ fi
 
 
 
-# These only work on Intel GPU laptops
-screenpath="/sys/class/backlight/intel_backlight/brightness"
-maxbrightdev="/sys/class/backlight/intel_backlight/max_brightness"
-# Known to work on Acer C720 -- other laptops might have different sensor paths
-sensorpath="/sys/bus/iio/devices/iio:device0/in_illuminance0_input"
-# Path to luxtab
-luxtabpath="/etc/delux/luxtab.csv"
-# Write out the definitions
+# Check if udevadm is in path. We need this to autoconfig
+# the path to the sensor
+
+# Extract the first word of "udevadm", so it can be a program name with args.
+set dummy udevadm; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_UDEVADM+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$UDEVADM"; then
+  ac_cv_prog_UDEVADM="$UDEVADM" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_UDEVADM="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+UDEVADM=$ac_cv_prog_UDEVADM
+if test -n "$UDEVADM"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $UDEVADM" >&5
+$as_echo "$UDEVADM" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test x"${UDEVADM}" == x"yes" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: Using udev to detect hardware device paths" >&5
+$as_echo "Using udev to detect hardware device paths" >&6; }
+    # These only work on Intel GPU laptops
+    screenpath="/sys/class/backlight/intel_backlight/brightness"
+    maxbrightdev="/sys/class/backlight/intel_backlight/max_brightness"
+    # Known to work on Acer C720 -- other laptops might have different sensor paths
+    sensorpath="/sys/bus/iio/devices/iio:device0/in_illuminance0_input"
+    # Write out the definitions
 
 cat >>confdefs.h <<_ACEOF
 #define SCRNPATH "$screenpath"
@@ -3412,11 +3454,17 @@ cat >>confdefs.h <<_ACEOF
 #define SENSPATH "$sensorpath"
 _ACEOF
 
+    # Let the program know we auto-configured
 
 cat >>confdefs.h <<_ACEOF
-#define LUXTAB "$luxtabpath"
+#define UDEV 1
 _ACEOF
 
+
+else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: udevadm needed to auto-configure device paths. Falling back to manual." >&5
+$as_echo "$as_me: WARNING: udevadm needed to auto-configure device paths. Falling back to manual." >&2;}
+fi
 
 ac_config_files="$ac_config_files Makefile"
 

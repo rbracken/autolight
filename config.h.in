@@ -31,9 +31,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* The path to the luxtab database */
-#undef LUXTAB
-
 /* The maximum brightness registered by the ALS */
 #undef MAXBRIGHTDEV
 
@@ -63,6 +60,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Auto-detection of hardware was used */
+#undef UDEV
 
 /* Define to rpl_malloc if the replacement function should be used. */
 #undef malloc
