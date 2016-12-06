@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "config.h"
 
 // These only works on Intel GPU laptops
 char screenpath[] = "/sys/class/backlight/intel_backlight/brightness";          
