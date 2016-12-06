@@ -3389,6 +3389,35 @@ fi
 
 
 
+# These only work on Intel GPU laptops
+screenpath="/sys/class/backlight/intel_backlight/brightness"
+maxbrightdev="/sys/class/backlight/intel_backlight/max_brightness"
+# Known to work on Acer C720 -- other laptops might have different sensor paths
+sensorpath="/sys/bus/iio/devices/iio:device0/in_illuminance0_input"
+# Path to luxtab
+luxtabpath="/etc/delux/luxtab.csv"
+# Write out the definitions
+
+cat >>confdefs.h <<_ACEOF
+#define SCRNPATH "$screenpath"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define MAXBRIGHTDEV "$maxbrightdev"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define SENSPATH "$sensorpath"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define LUXTAB "$luxtabpath"
+_ACEOF
+
+
 ac_config_files="$ac_config_files Makefile"
 
 cat >confcache <<\_ACEOF

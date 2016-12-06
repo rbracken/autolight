@@ -31,6 +31,12 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* The path to the luxtab database */
+#undef LUXTAB
+
+/* The maximum brightness registered by the ALS */
+#undef MAXBRIGHTDEV
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -48,6 +54,12 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* The path to the backlight device */
+#undef SCRNPATH
+
+/* Path to kernel device for sensor if direct hw access */
+#undef SENSPATH
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

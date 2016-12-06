@@ -4,14 +4,12 @@
 #include <unistd.h>
 #include "config.h"
 
-// These only works on Intel GPU laptops
-char screenpath[] = "/sys/class/backlight/intel_backlight/brightness";          
-char maxbrightdev[] = "/sys/class/backlight/intel_backlight/max_brightness";          
-// Known to work on Acer C720 -- other laptops might have different sensor paths
-char sensorpath[] = "/sys/bus/iio/devices/iio:device0/in_illuminance0_input";  
 
-// Path to where the luxtab database is found
-char luxtabpath[] = "/etc/delux/luxtab.csv";
+// Pull definitions in from config.h
+char screenpath[] = SCRNPATH; 
+char maxbrightdev[] = MAXBRIGHTDEV;
+char sensorpath[] = SENSPATH; 
+char luxtabpath[] = LUXTAB;
 
 // Theshold definitions, for fast- and med-speed 
 // transitions when adjusting backlight. Transitions
