@@ -64,16 +64,16 @@ the values in the delux script, at the top:
 
     
 # Installation
-To build and install delux, run (requires gcc/clang & make):
-    - make 
-    - sudo make install
-..and you're done! Precompiled versions can omit the `make` step, instead just running
-`make install`. 
+To build and install delux, run :
+- ./configure
+- make 
+- sudo make install
+...and you're done!
 
-To enable delux to start at boot, copy the delux script to `/usr/bin/delux` and copy the 
-init.d/deluxd script to `/etc/init.d/deluxd`. Update your init or rc.d to load the
+To enable delux to start at boot, update your init to run the /etc/init.d/deluxd 
 script at boottime, and you're off to the races (on Ubuntu/Debian, this command is 
-`update-rc.d deluxd defaults`).
+`update-rc.d deluxd defaults`). Lazy people or those with systemd should add it 
+to /etc/rc.local.
 
 By default, the daemon runs as the `root` user, for hardware permision reasons. Future
 releases may use D-Bus / HAL to overcome this restriction.
@@ -82,11 +82,9 @@ Rename delux.legacy to delux and re-run `make install` if you wish to use the le
 version as your default.
     
 # ToDo
-This script was hacked together in about 15 minutes, and is by no means perfect. If you 
-see where it can be improved, please suggest an improvement. Known ToDo's include:
-- Incorporate / investigate also using I.R. sensor data for more reliable brightness
-    tracking
-- Investigate D-Bus / HAL support
-- Add "user override" to change brightness settings over sensor-derived value
-
+This program is by no means perfect. If you see where it can be improved, 
+please suggest an improvement. Known ToDo's include:
+- Hardware abstraction: D-Bus / HAL support or iio-sensor-proxy
+- Proper init script (rc.subr, sysv, systemd?)
+- Package for RPM / DPKG
 
