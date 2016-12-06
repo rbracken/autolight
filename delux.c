@@ -8,7 +8,16 @@ char screenpath[] = "/sys/class/backlight/intel_backlight/brightness";
 char maxbrightdev[] = "/sys/class/backlight/intel_backlight/max_brightness";          
 // Known to work on Acer C720 -- other laptops might have different sensor paths
 char sensorpath[] = "/sys/bus/iio/devices/iio:device0/in_illuminance0_input";  
+
+// Path to where the luxtab database is found
 char luxtabpath[] = "/etc/delux/luxtab.csv";
+
+// Theshold definitions, for fast- and med-speed 
+// transitions when adjusting backlight. Transitions
+// occur at these speeds when the number of adjustment cycles to
+// reach target brightness is greater than the number listed
+#define MED 30
+#define FAST 100
 
 
 int upd_brightness( char *filepath, int brightness ) {
@@ -202,12 +211,12 @@ int main() {
             else if ( targ_brightness < brightness ) {
                 // Decrease our brightness
                 int diff = brightness - targ_brightness;
-                if ( diff / maxstep > 100 ) {
+                if ( diff / maxstep > FAST ) {
                     // For large diferences -- fast transition
                     brightness -= 6*maxstep;
                     adjust = 3;
                 }
-                else if ( diff / maxstep > 50 ) {
+                else if ( diff / maxstep > MED ) {
                     // For moderate differences -- faster convergence
                     brightness -= 3*maxstep;
                     adjust = 2;
@@ -221,12 +230,12 @@ int main() {
             else if ( targ_brightness > brightness ) {
                 // Increase our brightness
                 int diff = targ_brightness - brightness;
-                if ( diff / maxstep > 100 ) {
+                if ( diff / maxstep > FAST ) {
                     // For large diferences -- fast transition
                     brightness += 6*maxstep;
                     adjust = 3;
                 }
-                else if ( diff / maxstep > 50 ) {
+                else if ( diff / maxstep > MED ) {
                     // For moderate differences -- faster convergence
                     brightness += 3*maxstep;
                     adjust = 2;
