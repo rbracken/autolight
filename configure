@@ -3430,14 +3430,26 @@ $as_echo "no" >&6; }
 fi
 
 
+
 if test x"${UDEVADM}" == x"yes" ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Using udev to detect hardware device paths" >&5
 $as_echo "Using udev to detect hardware device paths" >&6; }
-    # These only work on Intel GPU laptops
-    screenpath="/sys/class/backlight/intel_backlight/brightness"
-    maxbrightdev="/sys/class/backlight/intel_backlight/max_brightness"
-    # Known to work on Acer C720 -- other laptops might have different sensor paths
-    sensorpath="/sys/bus/iio/devices/iio:device0/in_illuminance0_input"
+
+    #Check if hardware paths exist
+    if test ! -e "/sys/class/backlight"; then
+        as_fn_error $? "No backlight device found. Unable to autoconfigure, exiting." "$LINENO" 5
+    fi
+    if test ! -e "/sys/bus/iio/devices"; then
+        as_fn_error $? "No sensor device found. Unable to autoconfigure, exiting." "$LINENO" 5
+    fi
+
+    SCREEN=`udevadm info --export-db | grep backlight | grep DEVPATH | awk -F "/" '{print $NF}'`
+    SENS=`udevadm info --export-db | grep iio | grep DEVPATH | awk -F "/" '{print $NF}'`
+
+    # Still a semi-naive search for hardware
+    screenpath="/sys/class/backlight/$SCREEN/brightness"
+    maxbrightdev="/sys/class/backlight/$SCREEN/max_brightness"
+    sensorpath="/sys/bus/iio/devices/$SENS/in_illuminance0_input"
     # Write out the definitions
 
 cat >>confdefs.h <<_ACEOF
