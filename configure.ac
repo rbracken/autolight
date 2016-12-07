@@ -24,13 +24,25 @@ AC_FUNC_MALLOC
 # the path to the sensor
 AC_DEFUN(AC_PROG_UDEVADM, [AC_CHECK_PROG(UDEVADM,udevadm,yes)])
 AC_PROG_UDEVADM
+
 if test x"${UDEVADM}" == x"yes" ; then
     AC_MSG_RESULT([Using udev to detect hardware device paths])
-    # These only work on Intel GPU laptops
-    screenpath="/sys/class/backlight/intel_backlight/brightness"
-    maxbrightdev="/sys/class/backlight/intel_backlight/max_brightness"
-    # Known to work on Acer C720 -- other laptops might have different sensor paths
-    sensorpath="/sys/bus/iio/devices/iio:device0/in_illuminance0_input"
+    
+    #Check if hardware paths exist
+    if test ! -e "/sys/class/backlight"; then
+        AC_MSG_ERROR([No backlight device found. Unable to autoconfigure, exiting.])
+    fi
+    if test ! -e "/sys/bus/iio/devices"; then
+        AC_MSG_ERROR([No sensor device found. Unable to autoconfigure, exiting.])
+    fi
+
+    SCREEN=`udevadm info --export-db | grep backlight | grep DEVPATH | awk -F "/" '{print $NF}'` 
+    SENS=`udevadm info --export-db | grep iio | grep DEVPATH | awk -F "/" '{print $NF}'`
+
+    # Still a semi-naive search for hardware
+    screenpath="/sys/class/backlight/$SCREEN/brightness"
+    maxbrightdev="/sys/class/backlight/$SCREEN/max_brightness"
+    sensorpath="/sys/bus/iio/devices/$SENS/in_illuminance0_input"
     # Write out the definitions
     AC_DEFINE_UNQUOTED([SCRNPATH], ["$screenpath"], [The path to the backlight device])
     AC_DEFINE_UNQUOTED([MAXBRIGHTDEV], ["$maxbrightdev"], [The maximum brightness registered by the ALS])
