@@ -273,9 +273,9 @@ int main() {
         // and can be visually jarring
         switch(adjust) { // We might need more updates soon; short sleep
             case 0:  usleep(1000000); break;// Sleep 1 second
-            case 1:  usleep(3600); break;
-            case 2:  usleep(1800); break;
-            case 3:  usleep(900); break;
+            case 1:  usleep(360000); break;
+            case 2:  usleep(180000); break;
+            case 3:  usleep(90000); break;
             default: usleep(1000000); break;// Sleep 1 second
         }
 
