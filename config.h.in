@@ -61,7 +61,7 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Auto-detection of hardware was used */
+/* Auto-detection of hardware failed */
 #undef UDEV
 
 /* Define to rpl_malloc if the replacement function should be used. */

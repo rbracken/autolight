@@ -13,5 +13,15 @@ install:
 	chown -R root: /etc/delux
 	chown root: /etc/init.d/deluxd
 	chown root: /usr/sbin/delux /usr/sbin/delux.legacy
+	@echo "Creating pseudo-device /dev/pals"
+	touch /dev/pals
+enable:
+	@echo "Adding deluxd script to rc.local"
+	@echo "Note: this operation requires root privileges"
+	echo "/etc/init.d/deluxd start" >> /etc/rc.local
+disable:
+	@echo "Removing deluxd script from rc.local"
+	@echo "Note: this operation requires root privileges"
+	sed -i "/\/etc\/init.d\/deluxd/d" /etc/rc.local
 clean:
 	rm -f delux
