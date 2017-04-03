@@ -3450,26 +3450,10 @@ cat >>confdefs.h <<_ACEOF
 #define UDEV 0
 _ACEOF
 
-    fi
-    if test ! -e "/sys/bus/iio/devices"; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No sensor device found. Unable to autoconfigure, using manual." >&5
-$as_echo "$as_me: WARNING: No sensor device found. Unable to autoconfigure, using manual." >&2;}
-
-cat >>confdefs.h <<_ACEOF
-#define UDEV 0
-_ACEOF
-
-    fi
-
-    SCREEN=`udevadm info --export-db | grep backlight | grep DEVPATH | awk -F "/" '{print $NF}'`
-    SENS=`udevadm info --export-db | grep iio | grep DEVPATH | awk -F "/" '{print $NF}'`
-
-    # Still a semi-naive search for hardware
-    screenpath="/sys/class/backlight/$SCREEN/brightness"
-    maxbrightdev="/sys/class/backlight/$SCREEN/max_brightness"
-    sensorpath="/sys/bus/iio/devices/$SENS/in_illuminance0_input"
-
-    # Write out the definitions
+    else
+        SCREEN=`udevadm info --export-db | grep backlight | grep DEVPATH | awk -F "/" '{print $NF}'`
+        screenpath="/sys/class/backlight/$SCREEN/brightness"
+        maxbrightdev="/sys/class/backlight/$SCREEN/max_brightness"
 
 cat >>confdefs.h <<_ACEOF
 #define SCRNPATH "$screenpath"
@@ -3480,12 +3464,24 @@ cat >>confdefs.h <<_ACEOF
 #define MAXBRIGHTDEV "$maxbrightdev"
 _ACEOF
 
+    fi
+    if test ! -e "/sys/bus/iio/devices"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No sensor device found. Unable to autoconfigure, using manual." >&5
+$as_echo "$as_me: WARNING: No sensor device found. Unable to autoconfigure, using manual." >&2;}
+
+cat >>confdefs.h <<_ACEOF
+#define UDEV 0
+_ACEOF
+
+    else
+        SENS=`udevadm info --export-db | grep iio | grep DEVPATH | awk -F "/" '{print $NF}'`
+        sensorpath="/sys/bus/iio/devices/$SENS/in_illuminance0_input"
 
 cat >>confdefs.h <<_ACEOF
 #define SENSPATH "$sensorpath"
 _ACEOF
 
-
+    fi
 else
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: udevadm needed to auto-configure device paths. Falling back to manual." >&5
 $as_echo "$as_me: WARNING: udevadm needed to auto-configure device paths. Falling back to manual." >&2;}

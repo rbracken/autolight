@@ -34,25 +34,21 @@ if test x"${UDEVADM}" == x"yes" ; then
     if test ! -e "/sys/class/backlight"; then
         AC_MSG_WARN([No backlight device found. Unable to autoconfigure, using manual.])
         AC_DEFINE_UNQUOTED([UDEV], [0], [Auto-detection of hardware failed])
+    else
+        SCREEN=`udevadm info --export-db | grep backlight | grep DEVPATH | awk -F "/" '{print $NF}'` 
+        screenpath="/sys/class/backlight/$SCREEN/brightness"
+        maxbrightdev="/sys/class/backlight/$SCREEN/max_brightness"
+        AC_DEFINE_UNQUOTED([SCRNPATH], ["$screenpath"], [The path to the backlight device])
+        AC_DEFINE_UNQUOTED([MAXBRIGHTDEV], ["$maxbrightdev"], [The maximum brightness registered by the ALS])
     fi
     if test ! -e "/sys/bus/iio/devices"; then
         AC_MSG_WARN([No sensor device found. Unable to autoconfigure, using manual.])
         AC_DEFINE_UNQUOTED([UDEV], [0], [Auto-detection of hardware failed])
+    else
+        SENS=`udevadm info --export-db | grep iio | grep DEVPATH | awk -F "/" '{print $NF}'`
+        sensorpath="/sys/bus/iio/devices/$SENS/in_illuminance0_input"
+        AC_DEFINE_UNQUOTED([SENSPATH], ["$sensorpath"], [Path to kernel device for sensor if direct hw access])
     fi
-
-    SCREEN=`udevadm info --export-db | grep backlight | grep DEVPATH | awk -F "/" '{print $NF}'` 
-    SENS=`udevadm info --export-db | grep iio | grep DEVPATH | awk -F "/" '{print $NF}'`
-    
-    # Still a semi-naive search for hardware
-    screenpath="/sys/class/backlight/$SCREEN/brightness"
-    maxbrightdev="/sys/class/backlight/$SCREEN/max_brightness"
-    sensorpath="/sys/bus/iio/devices/$SENS/in_illuminance0_input"
-
-    # Write out the definitions
-    AC_DEFINE_UNQUOTED([SCRNPATH], ["$screenpath"], [The path to the backlight device])
-    AC_DEFINE_UNQUOTED([MAXBRIGHTDEV], ["$maxbrightdev"], [The maximum brightness registered by the ALS])
-    AC_DEFINE_UNQUOTED([SENSPATH], ["$sensorpath"], [Path to kernel device for sensor if direct hw access])
-
 else
     AC_MSG_WARN([udevadm needed to auto-configure device paths. Falling back to manual.])
 fi
