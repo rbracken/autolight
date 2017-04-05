@@ -7,12 +7,13 @@ install:
 	@echo "Run this *after* you run \`make\` to compile the binary"
 	@echo "Note: this operation requires root privileges"
 	mkdir -p /etc/delux
-	cp delux delux.legacy /usr/sbin/
+	mkdir -p /usr/local/sbin
+	cp delux delux.legacy /usr/local/sbin/
 	cp luxtab.csv /etc/delux/
 	cp init.d/deluxd /etc/init.d/
 	chown -R root: /etc/delux
 	chown root: /etc/init.d/deluxd
-	chown root: /usr/sbin/delux /usr/sbin/delux.legacy
+	chown root: /usr/local/sbin/delux /usr/local/sbin/delux.legacy
 	@echo "Creating pseudo-device /dev/pals"
 	touch /dev/pals
 enable:
