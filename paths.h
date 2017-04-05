@@ -1,7 +1,7 @@
 // Includes some default definitions
 
 //Path to luxtab database
-#define LUXTAB "/etc/delux/luxtab.csv"
+#define LUXTAB "/usr/local/etc/delux/luxtab.csv"
 
 // Definitions used if we cannot automatically find devices
 #if UDEV == 0

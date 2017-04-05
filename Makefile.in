@@ -6,12 +6,12 @@ all:
 install:
 	@echo "Run this *after* you run \`make\` to compile the binary"
 	@echo "Note: this operation requires root privileges"
-	mkdir -p /etc/delux
+	mkdir -p /usr/local/etc/delux
 	mkdir -p /usr/local/sbin
 	cp delux delux.legacy /usr/local/sbin/
-	cp luxtab.csv /etc/delux/
+	cp luxtab.csv /usr/local/etc/delux/
 	cp init.d/deluxd /etc/init.d/
-	chown -R root: /etc/delux
+	chown -R root: /usr/local/etc/delux
 	chown root: /etc/init.d/deluxd
 	chown root: /usr/local/sbin/delux /usr/local/sbin/delux.legacy
 	@echo "Creating pseudo-device /dev/pals"
