@@ -37,11 +37,11 @@ Delux is a freestanding binary, but is typically run as a daemon (deluxd). Root
 access is required to set the brightness level of the backlight, so both the
 binary and start script require root access to run.
 
-- To run the freestanding binary:
+To run the freestanding binary:
 
     sudo /usr/local/sbin/delux
 
-- To run as a daemon:
+To run as a daemon:
 
     sudo /etc/init.d/deluxd start
 
