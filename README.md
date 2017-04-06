@@ -10,7 +10,7 @@ Delux is written in C and is lightweight on CPU. It uses a configurable table of
 to precisely map ambient light sensor readings to appropriate screen brightness.
 
 # Installation
-The latest source code [can be found here.] (https://github.com/rbracken/delux/releases/latest)
+The latest source code [can be found here.](https://github.com/rbracken/delux/releases/latest)
 
 To build and install delux, run :
 
