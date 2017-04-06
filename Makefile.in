@@ -19,7 +19,9 @@ install:
 enable:
 	@echo "Adding deluxd script to rc.local"
 	@echo "Note: this operation requires root privileges"
+	sed -i "/exit/d" /etc/rc.local
 	echo "/etc/init.d/deluxd start" >> /etc/rc.local
+	echo "exit 0" >> /etc/rc.local
 disable:
 	@echo "Removing deluxd script from rc.local"
 	@echo "Note: this operation requires root privileges"
